@@ -1,76 +1,101 @@
-import React from "react";
+
 import { useContext } from "react";
-import { DataContext } from "../contexts/DataContexts";
+import { useState } from "react";
+import Table from "react-bootstrap/Table";
 import Button from "react-bootstrap/Button";
-import Navbarapp from "../components/Navbarapp";
-import { useNavigate } from "react-router-dom";
+import { PizzaContext } from "../contexts/DataContexts";
 
-const Cart = () => {
-  const { cart, setCart } = useContext(DataContext);
-  const Navigate = useNavigate();
+export default function ShoppingCart() {
+  const {
+    setCart,
+    addToCart,
+    removePizza,
+    totalPrice,
+    setTotalPrice,
+    addedPizza,
+    setPizzaArray,
+  } = useContext(PizzaContext);
 
-  const redirectHome = () => {
-    Navigate(`/`);
-  };
+  let list = [];
+  let count = 1;
 
-  const removeCart = (productId) => {
-    const updatedCart = [...cart];
-    const productIndex = updatedCart.findIndex((item) => item.id === productId);
+  const cartList = () => {
+    for (let i = 0; i < addedPizza.length; i++) {
+      let index = addedPizza[i];
 
-    if (productIndex !== -1) {
-      if (updatedCart[productIndex].quantity > 1) {
-        updatedCart[productIndex].quantity--;
+      if (index === addedPizza[i + 1]) {
+        count++;
       } else {
-        updatedCart.splice(productIndex, 1);
+        const newCartList = {
+          id: index.id,
+          name: index.name,
+          price: index.price,
+          img: index.img,
+          count: count,
+          result: count * index.price,
+        };
+
+        list.push(newCartList);
+        count = 1;
       }
-      setCart(updatedCart);
     }
   };
 
-  const addCartList = (productId) => {
-    const updatedCart = [...cart];
-    const productIndex = updatedCart.findIndex((item) => item.id === productId);
-    updatedCart[productIndex].quantity++;
-    setCart(updatedCart);
-  };
+  cartList();
+  setCart(addedPizza);
 
-  if (!cart.length) {
-    return (
-      <>
-        <div className="justify-content-center">
-          <Navbarapp />
-          <div className="d-flex justify-content-center">
-            <h1>Carrito de compra está vacío</h1>
-            <div className="d-flex justify-content-center mt-5">
-              <Button
-                variant="success"
-                onClick={() => {
-                  const confirmResult = window.confirm(
-                    "🍕 Elige una rica Pizza MAMMA MIA primero 🍕"
-                  );
-                  if (confirmResult) {
-                    redirectHome();
-                  }
-                }}
-              >
-                Volver
-              </Button>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  } else {
-    return (
-      <div className="justify-content-center">
-        <Navbarapp />
-        <div className="d-flex justify-content-center">
-          <h1>Detalle del Pedido</h1>
-        </div>
-        {/* ... Resto del código ... */}
-      </div>
-    );
-  }
-};
+  return (
+    <div>
+      <Table striped bordered hover size="sm">
+        <thead>
+          <tr>
+            <th>Referencia</th>
+            <th>Nombre de Pizza</th>
+            <th>Precio</th>
+          </tr>
+        </thead>
 
-export default Cart;
+        <tbody>
+          {list.map((pizza) => (
+            <tr>
+              <td className="pizzaCart">
+              <img src={pizza.img} className="img.pizza.cart img-fluid" alt="" />
+              </td>
+              <td>{pizza.name}</td>
+              <td>${pizza.result}</td>
+              <td>
+                {" "}
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    removePizza(pizza.id);
+                  }}
+                >
+                  {" "}
+                  -{" "}
+                </Button>
+              </td>
+              <td>{pizza.count} </td>
+              <td>
+                {" "}
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    addToCart(pizza.id), setTotalPrice(setPizzaArray(pizza.id));
+                  }}
+                >
+                  {" "}
+                  +{" "}
+                </Button>
+              </td>
+            </tr>
+          ))}{" "}
+        </tbody>
+
+        <h4>Total: ${totalPrice}</h4>
+
+        <Button>ir a pagar</Button>
+      </Table>
+    </div>
+  );
+}

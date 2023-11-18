@@ -1,76 +1,95 @@
-import { createContext, useState, useEffect } from "react";
-import axios from "axios";
+import { useState, useEffect } from "react";
+import { createContext } from "react"; // LOGICA DE NEGOCIO DE LA APP
 
-export const DataContext = createContext();
+export const PizzaContext = createContext();
 
-const data_Url = "./pizzas.json";
-
-const DataProvider = ({ children }) => {
-  const [data, setData] = useState([]);
+export function Provider({ children }) {
+  const [pizzas, setPizzas] = useState([]);
   const [cart, setCart] = useState([]);
-
-  const callToast = (callback) => {
-    callback();
-  };
+  const [prices, setPrices] = useState([]);
+  const [totalPrice, setTotalPrice] = useState(0);
 
   const getData = async () => {
-    try {
-      const response = await axios.get(data_Url);
-      console.log(response);
-      if (response.status !== 200) {
-        throw new error("No hay Data que mostrar");
+    const res = await fetch("./pizzas.json");
+    const data = await res.json();
+    setPizzas(data);
+  };
+
+  const addedPizza = cart.sort(function (a, b) {
+    if (a.id > b.id) {
+      return 1;
+    }
+    if (a.id < b.id) {
+      return -1;
+    }
+    return 0;
+  });
+
+  const addToCart = (id) => {
+    const pizza = pizzas.find((pizza) => pizza.id === id);
+    setCart((prevCart) => [...prevCart, pizza]);
+  };
+
+  // ...
+  const removePizza = (id) => {
+    const { index, price } = cart.reduce(
+      (accumulator, pizza, currentIndex) => {
+        if (pizza.id === id) {
+          accumulator.index = currentIndex;
+          accumulator.price = pizza.price;
+        }
+        return accumulator;
+      },
+      { index: -1, price: 0 }
+    );
+
+    if (index !== -1) {
+      cart.splice(index, 1);
+      const flattenedCart = cart.flat();
+      setCart(flattenedCart);
+
+      const indexPrice = prices.findIndex((element) => element === price);
+      if (indexPrice !== -1) {
+        prices.splice(indexPrice, 1);
+        const updatedPrices = [...prices];
+        setPrices(updatedPrices);
+        setTotalPrice(totalPrice - price);
       }
-      const data = response.data;
-      console.log(data);
-      setData(data);
-    } catch (error) {
-      console.log(error.message);
     }
   };
 
-  const addToCart = (product) => {
-    const updatedCart = [...cart];
-    const productIndex = updatedCart.findIndex(
-      (item) => item.id === product.id
-    );
-
-    if (productIndex !== -1) {
-      updatedCart[productIndex].quantity++;
-    } else {
-      updatedCart.push({ ...product, quantity: 1 });
-    }
-
-    setCart(updatedCart);
-    callToast();
-    console.log("carro", setCart);
+  const setArrayPizza = (id) => {
+    const pizzaFilt = pizzas.find((pizza) => pizza.id === id);
+    const price = pizzaFilt.price;
+    prices.push(price);
+    setTotalPrice(totalPrice + price);
+    const response = prices.reduce((a, b) => a + b);
+    return response;
   };
-
-  const TotalPrice = () => {
-    const totalPrice = cart.reduce(
-      (total, item) => total + item.price * item.quantity,
-      0
-    );
-    return totalPrice;
-  };
+  // ...
 
   useEffect(() => {
     getData();
   }, []);
-  return (
-    <DataContext.Provider
-      value={{
-        data,
-        setData,
-        cart,
-        setCart,
-        addToCart,
-        TotalPrice,
-        callToast,
-      }}
-    >
-      {children}
-    </DataContext.Provider>
-  );
-};
 
-export default DataProvider;
+  const globalState = {
+    pizzas,
+    cart,
+    prices,
+    setCart,
+    setPrices,
+    totalPrice,
+    setTotalPrice,
+    addedPizza,
+    removePizza,
+    setArrayPizza,
+    addToCart,
+    
+  };
+
+  return (
+    <PizzaContext.Provider value={globalState}>
+      {children}
+    </PizzaContext.Provider>
+  );
+}

@@ -1,0 +1,19 @@
+.header{
+    background-image: url("https://templates.visual-paradigm.com/repository/images/56a4f175-1247-4a18-80a1-853848f1a021/email-headers-design/pizza-restaurant-email-header.png");
+    background-size: cover;
+    padding: 100px;
+    opacity: 0.8;
+}
+.active{
+    color: black;
+}
+.not-active{
+    color: white;
+}
+.Navstyle{
+    background-color: #17a2b8;
+}
+.pizza-detail{
+    height: 150px;
+    width: auto;
+}
